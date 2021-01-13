@@ -1,0 +1,98 @@
+
+Практическое задание по теме “Оптимизация запросов”
+
+--Задание 1--
+Создайте таблицу logs типа Archive. 
+Пусть при каждом создании записи в таблицах users, catalogs и products 
+в таблицу logs помещается время и дата создания записи, 
+название таблицы, идентификатор первичного ключа и содержимое поля name.
+
+DROP TABLE IF EXISTS logs;
+CREATE TABLE logs (
+  created_at DATETIME NOT NULL COMMENT 'Время и дата создания записи',
+  table_name VARCHAR(20) NOT NULL COMMENT 'Название таблицы, в которую добавляется запись',
+  pr_key_id BIGINT(20) NOT NULL COMMENT 'Идентификатор первичного ключа',
+  in_name VARCHAR(255) NOT NULL COMMENT 'Содержание поля "name"'
+) ENGINE=ARCHIVE;
+
+
+DROP TRIGGER IF EXISTS `shop`.`users_AFTER_INSERT`;
+
+DELIMITER $$
+USE `shop`$$
+CREATE DEFINER = CURRENT_USER TRIGGER `shop`.`users_AFTER_INSERT` AFTER INSERT ON `users` FOR EACH ROW
+BEGIN
+	INSERT INTO logs (created_at, table_name, pr_key_id, in_name)
+	VALUES (NOW(), 'users', NEW.id, NEW.name);
+END$$
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS `shop`.`catalogs_AFTER_INSERT`;
+
+DELIMITER $$
+USE `shop`$$
+CREATE DEFINER = CURRENT_USER TRIGGER `shop`.`catalogs_AFTER_INSERT` AFTER INSERT ON `catalogs` FOR EACH ROW
+BEGIN
+INSERT INTO logs (created_at, table_name, pr_key_id, in_name)
+	VALUES (NOW(), 'catalogs', NEW.id, NEW.name);
+END$$
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS `shop`.`products_AFTER_INSERT`;
+
+DELIMITER $$
+USE `shop`$$
+CREATE DEFINER = CURRENT_USER TRIGGER `shop`.`products_AFTER_INSERT` AFTER INSERT ON `products` FOR EACH ROW
+BEGIN
+INSERT INTO logs (created_at, table_name, pr_key_id, in_name)
+	VALUES (NOW(), 'products', NEW.id, NEW.name);
+END$$
+DELIMITER ;
+
+
+
+--Задание 2--
+(по желанию) Создайте SQL-запрос, который помещает в таблицу users миллион записей.
+
+
+
+
+
+
+
+Практическое задание по теме “NoSQ"
+
+--Задание 1--
+В базе данных Redis подберите коллекцию для подсчета посещений с определенных IP-адресов.
+
+SCARD ip-address
+
+
+--Задание 2--
+При помощи базы данных Redis решите задачу поиска имени пользователя по электронному адресу и наоборот, 
+поиск электронного адреса пользователя по его имени.
+
+SET conner@example.net Presley     -- e-mail - это ключ; Имя - это значение--
+SET Presley conner@example.net     --Имя - это ключ; e-mail - это значение--
+
+GET conner@example.net             --по ключу e-mail выдается имя пользователя--
+GET Presley                        --по ключу Имя выдается e-mail пользователя--
+
+
+
+
+--Задание 3--
+Организуйте хранение категорий и товарных позиций учебной базы данных shop в СУБД MongoDB.
+
+use catalogs
+db.catalogs.insert({name: 'Процессоры'})
+db.catalogs.insert({name: 'Материнские платы'})
+db.catalogs.insert({name: 'Видеокарты'})
+db.catalogs.insert({name: 'Жесткие диски'})
+
+
+use products
+db.products.insert({"name": "AMD Sempron 2650 OEM", "description": "Процессор AMD Sempron 2650 характеризуется оптимальной производительностью", "price": "999.00", "catalog_id": "Процессоры", "created_at": new Date(), "updated_at": new Date()})
+
